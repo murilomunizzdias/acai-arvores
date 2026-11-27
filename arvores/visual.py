@@ -1,7 +1,10 @@
 """Desenho das árvores com matplotlib (biblioteca só de PLOTAGEM, não de árvore)."""
 import os
+import subprocess
+import sys
 
 import matplotlib
+matplotlib.use("Agg")  # desenha em arquivo; a imagem é aberta pelo visualizador do sistema
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
@@ -12,10 +15,6 @@ COR_V = "#c0392b"
 COR_P = "#1f1f1f"
 COR_ACAI = "#4a1a4f"
 DESTAQUE = "#f1c40f"
-
-
-def _tem_tela():
-    return matplotlib.get_backend().lower() not in ("agg", "pdf", "svg", "ps", "cairo")
 
 
 # ------------------------------------------------------------ Rubro-Negra
@@ -127,14 +126,27 @@ def lado_a_lado(rn, t, destacar=(), arquivo=None, mostrar=False, titulo_t=None):
     _finaliza(fig, arquivo, mostrar)
 
 
+def abrir_imagem(arquivo):
+    """Abre o PNG no visualizador de imagens do sistema SEM travar o menu."""
+    try:
+        if sys.platform.startswith("win"):
+            os.startfile(arquivo)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", arquivo])
+        else:
+            subprocess.Popen(["xdg-open", arquivo], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        print("  (abra a imagem manualmente:", arquivo, ")")
+
+
 def _finaliza(fig, arquivo, mostrar):
     fig.tight_layout(rect=(0, 0.05, 1, 1))
     if arquivo:
         os.makedirs(os.path.dirname(arquivo) or ".", exist_ok=True)
         fig.savefig(arquivo, dpi=130)
-    if mostrar and _tem_tela():
-        plt.show()
     plt.close(fig)
+    if mostrar and arquivo:
+        abrir_imagem(arquivo)
 
 
 class GravadorPassos:

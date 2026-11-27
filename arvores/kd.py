@@ -102,6 +102,8 @@ BARRACAS = [
 
 
 def desenhar_kd(arv, alvo=None, resultado=None, arquivo=None, mostrar=False, limites=(0, 100, 0, 100)):
+    import matplotlib
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(13, 6))
     xmin, xmax, ymin, ymax = limites
@@ -160,9 +162,10 @@ def desenhar_kd(arv, alvo=None, resultado=None, arquivo=None, mostrar=False, lim
     fig.tight_layout()
     if arquivo:
         fig.savefig(arquivo, dpi=130)
-    if mostrar:
-        plt.show()
     plt.close(fig)
+    if mostrar and arquivo:
+        from .visual import abrir_imagem
+        abrir_imagem(arquivo)
 
 
 def demonstracao(alvo=(60, 60), arquivo=None, mostrar=False):
