@@ -1,8 +1,7 @@
 """Bolsa do Açaí — índice de lotes da Feira do Açaí (Ver-o-Peso, Belém).
 
 Os barcos chegam de madrugada e cada lote tem um preço por rasa. O comprador
-quer achar rápido: um preço exato, o lote mais barato, os lotes que cabem no
-orçamento (faixa de preço). Os lotes entram e saem a noite toda -> a árvore
+quer achar rápido um preço. Os lotes entram e saem a noite toda -> a árvore
 precisa continuar balanceada. Os mesmos lotes vão para uma Rubro-Negra e para
 uma 2-3-4 ao mesmo tempo, para comparar os dois balanceamentos.
 
@@ -13,8 +12,8 @@ import sys
 
 from arvores.lote import Lote, carregar_csv
 from arvores.rubro_negra import ArvoreRubroNegra
-from arvores.arvore234 import Arvore234, rubro_negra_para_234
-from arvores import visual, kd
+from arvores.arvore234 import Arvore234
+from arvores import visual
 
 PASTA = os.path.dirname(os.path.abspath(__file__))
 SAIDA = os.path.join(PASTA, "saida")
@@ -51,12 +50,10 @@ class Sistema:
             print("    -", e)
         if self.passo_a_passo:
             for g in (self.g_rn, self.g_t):
-                gif = g.gerar_gif()
-                if gif:
-                    print("  GIF do passo a passo:", os.path.relpath(gif, PASTA))
+                if g.quadros:
+                    print("  Passo a passo salvo em", os.path.relpath(g.pasta, PASTA))
+                    break
         self.rn.observador = self.t.observador = None
-        self.rn.verificar()
-        self.t.verificar()
 
     def inserir(self, lote, falar=True):
         if falar:
@@ -96,14 +93,8 @@ OPCOES = """
  1  Ver as duas árvores (figura)
  2  Chegou barco: inserir lote
  3  Vendeu: remover lote (um lote ou o preço inteiro)
- 4  Buscar preço exato
- 5  Orçamento: lotes entre R$ A e R$ B
- 6  Lote mais barato / mais caro
- 7  Equivalência: Rubro-Negra vista como 2-3-4
- 8  Comparativo de balanceamento (rotações x splits)
- 9  Verificar propriedades das árvores
-10  Demonstração da árvore k-D (barraca mais próxima)
-11  Modo passo a passo: {pp}
+ 4  Buscar preço
+ 5  Modo passo a passo: {pp}
  0  Sair
 ================================================================="""
 
@@ -146,71 +137,14 @@ def opcao_buscar(s):
         print("  Não encontrado.")
 
 
-def opcao_faixa(s):
-    a = ler_int("  De R$: ")
-    b = ler_int("  Até R$: ")
-    if a > b:
-        a, b = b, a
-    achados = s.rn.faixa(a, b)
-    iguais = [l.id for l in achados] == [l.id for l in s.t.faixa(a, b)]
-    print(f"  {len(achados)} lotes" + (" (mesmo resultado nas duas árvores):" if iguais else ":"))
-    for l in achados:
-        print("   ", l)
-
-
-def opcao_extremos(s):
-    nos = s.rn.em_ordem()
-    if not nos:
-        print("  Árvore vazia.")
-        return
-    print("  Mais barato:")
-    for l in nos[0].lotes:
-        print("   ", l)
-    print("  Mais caro:")
-    for l in nos[-1].lotes:
-        print("   ", l)
-
-
-def opcao_equivalencia(s):
-    raiz = rubro_negra_para_234(s.rn)
-    arq = os.path.join(SAIDA, "equivalencia.png")
-    visual.lado_a_lado(s.rn, raiz, arquivo=arq, mostrar=True,
-                       titulo_t="A MESMA Rubro-Negra agrupando cada nó preto com seus filhos vermelhos")
-    print("  Cada nó preto + filhos vermelhos = um nó 2-3-4 (2, 3 ou 4 filhos).")
-    print("  Figura salva em", os.path.relpath(arq, PASTA))
-
-
-def opcao_comparativo(s):
-    print(f"  Rubro-Negra: altura {s.rn.altura()}, altura negra {s.rn.verificar()}, "
-          f"rotações {s.rn.stats['rotacoes']}, recolorações {s.rn.stats['recoloracoes']}")
-    print(f"  2-3-4      : altura {s.t.altura()}, nós {len(s.t.nos())}, "
-          f"splits {s.t.stats['splits']}, fusões {s.t.stats['fusoes']}, "
-          f"empréstimos {s.t.stats['emprestimos']}")
-
-
-def opcao_verificar(s):
-    print(f"  Rubro-Negra OK (altura negra {s.rn.verificar()}) | 2-3-4 OK (altura {s.t.verificar()})")
-
-
-def opcao_kd(s):
-    x = ler_int("  Posição x do comprador, 0 a 100 m (Enter = 60): ", 60)
-    y = ler_int("  Posição y do comprador, 0 a 100 m (Enter = 60): ", 60)
-    arq = os.path.join(SAIDA, "kd_tree.png")
-    kd.demonstracao((x, y), arquivo=arq, mostrar=True)
-    print("  Figura salva em", os.path.relpath(arq, PASTA))
-
-
 def opcao_passo(s):
     s.passo_a_passo = not s.passo_a_passo
     if s.passo_a_passo:
-        print("  Cada rotação/split/fusão vira um quadro em saida/passos/ + GIF.")
+        print("  Cada rotação/recoloração/split/fusão vira uma figura em saida/passos/.")
 
 
-ACOES = {
-    "1": lambda s: s.mostrar(), "2": opcao_inserir, "3": opcao_remover, "4": opcao_buscar,
-    "5": opcao_faixa, "6": opcao_extremos, "7": opcao_equivalencia, "8": opcao_comparativo,
-    "9": opcao_verificar, "10": opcao_kd, "11": opcao_passo,
-}
+ACOES = {"1": lambda s: s.mostrar(), "2": opcao_inserir, "3": opcao_remover,
+         "4": opcao_buscar, "5": opcao_passo}
 
 
 def menu():
