@@ -32,7 +32,6 @@ class ArvoreRubroNegra:
         self.observador = observador        # função chamada a cada passo (plot)
         self.eventos = []
         self.qtd_nos = 0
-        self.stats = {"rotacoes": 0, "recoloracoes": 0}
 
     # ------------------------------------------------------------ utilidades
     def _log(self, msg):
@@ -63,7 +62,6 @@ class ArvoreRubroNegra:
             x.pai.dir = y
         y.esq = x
         x.pai = y
-        self.stats["rotacoes"] += 1
         self._log(f"Rotação à ESQUERDA em {x.chave} ({y.chave} sobe)")
 
     def _rotacao_direita(self, x):
@@ -80,13 +78,11 @@ class ArvoreRubroNegra:
             x.pai.esq = y
         y.dir = x
         x.pai = y
-        self.stats["rotacoes"] += 1
         self._log(f"Rotação à DIREITA em {x.chave} ({y.chave} sobe)")
 
     def _pintar(self, no, cor):
         if no is not self.NIL and no.cor != cor:
             no.cor = cor
-            self.stats["recoloracoes"] += 1
 
     # ---------------------------------------------------------------- busca
     def buscar(self, chave):
@@ -98,22 +94,6 @@ class ArvoreRubroNegra:
                 return no, caminho
             no = no.esq if chave < no.chave else no.dir
         return None, caminho
-
-    def faixa(self, a, b):
-        """Todos os lotes com preço entre a e b (em ordem), podando subárvores."""
-        saida = []
-
-        def visita(no):
-            if no is self.NIL:
-                return
-            if a < no.chave:
-                visita(no.esq)
-            if a <= no.chave <= b:
-                saida.extend(no.lotes)
-            if no.chave < b:
-                visita(no.dir)
-        visita(self.raiz)
-        return saida
 
     def em_ordem(self):
         saida = []
@@ -321,26 +301,3 @@ class ArvoreRubroNegra:
             self._log(f"{x.chave} (vermelho) assume o preto que faltava: altura negra restaurada")
         x.cor = PRETO
         self.NIL.cor = PRETO
-
-    # ------------------------------------------------------------ validação
-    def verificar(self):
-        """Confere as 5 propriedades. Retorna a altura negra ou lança AssertionError."""
-        assert self.raiz.cor == PRETO, "raiz deve ser preta"
-        assert self.NIL.cor == PRETO
-
-        def checa(no, lo, hi):
-            if no is self.NIL:
-                return 1
-            assert (lo is None or no.chave > lo) and (hi is None or no.chave < hi), "ordem BST"
-            assert no.lotes, "nó sem lotes"
-            if no.cor == VERMELHO:
-                assert no.esq.cor == PRETO and no.dir.cor == PRETO, "vermelho com filho vermelho"
-            if no.esq is not self.NIL:
-                assert no.esq.pai is no, "ponteiro pai quebrado"
-            if no.dir is not self.NIL:
-                assert no.dir.pai is no, "ponteiro pai quebrado"
-            he = checa(no.esq, lo, no.chave)
-            hd = checa(no.dir, no.chave, hi)
-            assert he == hd, "altura negra diferente"
-            return he + (1 if no.cor == PRETO else 0)
-        return checa(self.raiz, None, None)

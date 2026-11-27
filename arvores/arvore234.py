@@ -47,7 +47,6 @@ class Arvore234:
         self.observador = observador
         self.eventos = []
         self.qtd_chaves = 0
-        self.stats = {"splits": 0, "fusoes": 0, "emprestimos": 0}
 
     def _log(self, msg):
         self.eventos.append(msg)
@@ -73,22 +72,6 @@ class Arvore234:
                 return no, i, caminho
             no = None if no.folha else no.filhos[i]
         return None, None, caminho
-
-    def faixa(self, a, b):
-        saida = []
-
-        def visita(no):
-            if no is None:
-                return
-            for i, k in enumerate(no.chaves):
-                if not no.folha and a < k:
-                    visita(no.filhos[i])
-                if a <= k <= b:
-                    saida.extend(no.baldes[i])
-            if not no.folha and no.chaves[-1] < b:
-                visita(no.filhos[-1])
-        visita(self.raiz)
-        return saida
 
     def altura(self):
         h, no = 0, self.raiz
@@ -122,7 +105,6 @@ class Arvore234:
         x.baldes.insert(i, b_meio)
         x.filhos.insert(i + 1, z)
         y.pai = x
-        self.stats["splits"] += 1
         self._log(f"SPLIT do 4-nó {antes}: {k_meio} sobe, sobram {y} e {z}")
 
     def inserir(self, lote):
@@ -195,7 +177,6 @@ class Arvore234:
         x.chaves.pop(i)
         x.baldes.pop(i)
         x.filhos.pop(i + 1)
-        self.stats["fusoes"] += 1
         if x is self.raiz and not x.chaves:
             self.raiz = y
             y.pai = None
@@ -214,7 +195,6 @@ class Arvore234:
             f = e.filhos.pop()
             c.filhos.insert(0, f)
             f.pai = c
-        self.stats["emprestimos"] += 1
         self._log(f"EMPRÉSTIMO (rotação) do irmão esquerdo: {x.chaves[i-1]} sobe, "
                   f"{c.chaves[0]} desce para {c}")
 
@@ -228,7 +208,6 @@ class Arvore234:
             f = d.filhos.pop(0)
             c.filhos.append(f)
             f.pai = c
-        self.stats["emprestimos"] += 1
         self._log(f"EMPRÉSTIMO (rotação) do irmão direito: {x.chaves[i]} sobe, "
                   f"{c.chaves[-1]} desce para {c}")
 
@@ -274,57 +253,3 @@ class Arvore234:
                     else:
                         c = self._fundir(x, i)
                 x = c
-
-    # ------------------------------------------------------------ validação
-    def verificar(self):
-        if self.raiz is None:
-            return 0
-        assert self.raiz.pai is None
-        profundidades = set()
-
-        def checa(no, lo, hi, prof):
-            assert 1 <= len(no.chaves) <= 3, f"nó com {len(no.chaves)} chaves"
-            assert len(no.baldes) == len(no.chaves)
-            assert all(no.baldes), "balde vazio"
-            assert no.chaves == sorted(no.chaves)
-            assert all((lo is None or k > lo) and (hi is None or k < hi) for k in no.chaves)
-            if no.folha:
-                profundidades.add(prof)
-                return
-            assert len(no.filhos) == len(no.chaves) + 1, "nº de filhos errado"
-            limites = [lo] + no.chaves + [hi]
-            for j, f in enumerate(no.filhos):
-                assert f.pai is no, "ponteiro pai quebrado"
-                checa(f, limites[j], limites[j + 1], prof + 1)
-        checa(self.raiz, None, None, 0)
-        assert len(profundidades) == 1, "folhas em níveis diferentes"
-        return self.altura()
-
-
-def rubro_negra_para_234(rn):
-    """Mostra a equivalência: cada nó PRETO + seus filhos VERMELHOS = 1 nó 2-3-4."""
-    from .rubro_negra import VERMELHO
-    NIL = rn.NIL
-
-    def agrupa(no, pai=None):
-        n = No234(pai)
-        partes, filhos = [], []
-        if no.esq is not NIL and no.esq.cor == VERMELHO:
-            partes.append(no.esq)
-            filhos += [no.esq.esq, no.esq.dir]
-        else:
-            filhos.append(no.esq)
-        partes.append(no)
-        if no.dir is not NIL and no.dir.cor == VERMELHO:
-            partes.append(no.dir)
-            filhos += [no.dir.esq, no.dir.dir]
-        else:
-            filhos.append(no.dir)
-        n.chaves = [p.chave for p in partes]
-        n.baldes = [p.lotes for p in partes]
-        n.filhos = [agrupa(f, n) for f in filhos if f is not NIL]
-        return n
-
-    if rn.raiz is NIL:
-        return None
-    return agrupa(rn.raiz)

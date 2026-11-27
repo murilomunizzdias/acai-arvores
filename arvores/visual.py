@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 from .rubro_negra import ArvoreRubroNegra, VERMELHO
-from .arvore234 import Arvore234, No234
 
 COR_V = "#c0392b"
 COR_P = "#1f1f1f"
@@ -117,12 +116,11 @@ def figura(arvore, destacar=(), titulo=None, legenda=None, arquivo=None, mostrar
     _finaliza(fig, arquivo, mostrar)
 
 
-def lado_a_lado(rn, t, destacar=(), arquivo=None, mostrar=False, titulo_t=None):
+def lado_a_lado(rn, t, destacar=(), arquivo=None, mostrar=False):
     n = max(rn.qtd_nos, 10)
     fig, (a1, a2) = plt.subplots(2, 1, figsize=(max(10, n * 0.45), 10))
     desenhar_rn(a1, rn, destacar)
-    raiz = t.raiz if isinstance(t, Arvore234) else t
-    desenhar_234(a2, raiz, destacar, titulo_t or (_titulo_234(t) if isinstance(t, Arvore234) else ""))
+    desenhar_234(a2, t.raiz, destacar, _titulo_234(t))
     _finaliza(fig, arquivo, mostrar)
 
 
@@ -150,8 +148,7 @@ def _finaliza(fig, arquivo, mostrar):
 
 
 class GravadorPassos:
-    """Observador: salva um quadro PNG a cada rotação/recoloração/split/fusão
-    e, no final, junta tudo num GIF animado."""
+    """Observador: salva um quadro PNG a cada rotação/recoloração/split/fusão."""
 
     def __init__(self, pasta, prefixo):
         self.pasta, self.prefixo, self.quadros = pasta, prefixo, []
@@ -161,19 +158,3 @@ class GravadorPassos:
         arq = os.path.join(self.pasta, f"{self.prefixo}_{len(self.quadros):03d}.png")
         figura(arvore, legenda=f"Passo {len(self.quadros) + 1}: {msg}", arquivo=arq)
         self.quadros.append(arq)
-
-    def gerar_gif(self, nome=None, ms=1400):
-        if not self.quadros:
-            return None
-        from PIL import Image
-        imgs = [Image.open(q).convert("RGB") for q in self.quadros]
-        w = max(i.width for i in imgs)
-        h = max(i.height for i in imgs)
-        quadros = []
-        for i in imgs:
-            base = Image.new("RGB", (w, h), "white")
-            base.paste(i, ((w - i.width) // 2, 0))
-            quadros.append(base)
-        destino = os.path.join(self.pasta, nome or f"{self.prefixo}.gif")
-        quadros[0].save(destino, save_all=True, append_images=quadros[1:], duration=ms, loop=0)
-        return destino
