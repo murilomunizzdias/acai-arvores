@@ -1,0 +1,31 @@
+id,preco,origem,barco,rasas,chegada
+L01,250,Muaná,Boto Tucuxi,59,01:45
+L02,280,Barcarena,Rainha do Combu,54,01:51
+L03,240,Cotijuba,N. Sra. de Nazaré,42,01:56
+L04,260,Cametá,Flor do Açaí,17,02:01
+L05,250,Oeiras do Pará,São Benedito,9,02:09
+L06,200,Muaná,Boto Tucuxi,37,02:18
+L07,245,Cotijuba,Maré Mansa,45,02:24
+L08,220,Limoeiro do Ajuru,Rainha do Combu,35,02:31
+L09,300,Oeiras do Pará,Flor do Açaí,33,02:38
+L10,300,Cametá,Maré Mansa,44,02:45
+L11,160,Barcarena,N. Sra. de Nazaré,59,02:51
+L12,180,Oeiras do Pará,Pérola do Marajó,57,02:54
+L13,190,Combu,N. Sra. de Nazaré,50,02:58
+L14,220,Oeiras do Pará,Maré Mansa,38,03:01
+L15,180,Limoeiro do Ajuru,Pérola do Marajó,15,03:05
+L16,140,Limoeiro do Ajuru,Flor do Açaí,53,03:13
+L17,270,Cametá,N. Sra. de Nazaré,33,03:20
+L18,200,Cametá,N. Sra. de Nazaré,59,03:28
+L19,175,Barcarena,Flor do Açaí,59,03:36
+L20,230,Ponta de Pedras,Pérola do Marajó,26,03:42
+L21,330,Cametá,Estrela do Guamá,10,03:51
+L22,320,Oeiras do Pará,Flor do Açaí,59,03:55
+L23,290,Limoeiro do Ajuru,Boto Tucuxi,20,04:02
+L24,170,Limoeiro do Ajuru,Flor do Açaí,40,04:07
+L25,230,Limoeiro do Ajuru,Maré Mansa,43,04:16
+L26,155,Combu,São Benedito,28,04:24
+L27,180,Cotijuba,Flor do Açaí,52,04:30
+L28,210,Barcarena,São Benedito,36,04:38
+L29,310,Ponta de Pedras,Flor do Açaí,12,04:42
+L30,150,Cametá,Flor do Açaí,31,04:50
